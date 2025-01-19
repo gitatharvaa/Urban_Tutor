@@ -1,0 +1,9 @@
+const router = require('express').Router();
+
+const UserController = require("../controller/user.controller");
+
+router.post('/registration',UserController.register);//this is API which is hit by user
+            //above is our API name
+            router.post('/login', UserController.login); // Add this line
+
+module.exports = router;// we do this, so we can import it in another file.
