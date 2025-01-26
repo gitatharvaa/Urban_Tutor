@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:urban_tutor/auth/login_screen.dart';
+import 'package:urban_tutor/services/auth_service.dart';
 
 class ResponsiveMainDrawer extends StatelessWidget {
   const ResponsiveMainDrawer({
@@ -10,13 +11,10 @@ class ResponsiveMainDrawer extends StatelessWidget {
     required this.onSelectedScreen,
   });
 
-  void _logout(BuildContext context) async {
+    void _logout(BuildContext context) async {
     try {
-      // Get SharedPreferences instance
-      final prefs = await SharedPreferences.getInstance();
-      
-      // Clear the token
-      await prefs.remove('token');
+      // Remove the token using AuthService
+      await AuthService.logout();
       
       if (context.mounted) {
         // Navigate to login screen and remove all previous routes
@@ -32,6 +30,7 @@ class ResponsiveMainDrawer extends StatelessWidget {
           const SnackBar(
             content: Text('Error logging out. Please try again.'),
             backgroundColor: Colors.red,
+            duration:  Duration(seconds: 3),
           ),
         );
       }

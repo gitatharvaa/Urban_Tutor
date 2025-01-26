@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:urban_tutor/services/auth_service.dart';
 import 'package:urban_tutor/auth/login_screen.dart';
 import 'package:urban_tutor/screens/home_page.dart';
 
@@ -16,8 +15,10 @@ final theme = ThemeData(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
+  
+  String? token = await AuthService.isTokenValid() 
+    ? await AuthService.getToken() 
+    : null;
 
   runApp(MyApp(token: token));
 }
@@ -32,9 +33,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Urban Tutor',
       theme: theme,
-      home: token == null || JwtDecoder.isExpired(token!)
-          ? const LoginScreen()
-          : HomePage(token: token!),
+      home: token != null ? HomePage(token: token!) : const LoginScreen(),
     );
   }
 }
