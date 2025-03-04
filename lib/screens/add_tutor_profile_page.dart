@@ -31,12 +31,12 @@ class _AddTutorProfilePageState extends State<AddTutorProfilePage> {
         backgroundColor: const Color.fromARGB(255, 255, 239, 239),
         appBar: AppBar(
           backgroundColor: const Color.fromARGB(255, 255, 49, 63),
-          title: Text(
+          title: const Text(
             'Add Tutor Profile',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -60,7 +60,7 @@ class _AddTutorProfilePageState extends State<AddTutorProfilePage> {
                   onPressed: () {
                     // Implement image picking functionality
                   },
-                  child: Text('Add Profile Picture'),
+                  child: const Text('Add Profile Picture'),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
@@ -141,9 +141,9 @@ class _AddTutorProfilePageState extends State<AddTutorProfilePage> {
                     if (_formKey.currentState?.validate() ?? false) {
                       // Implement save functionality
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Profile saved successfully!'),
-                          backgroundColor: const Color.fromARGB(255, 255, 49, 63),
+                          backgroundColor: Color.fromARGB(255, 255, 49, 63),
                         ),
                       );
                       Navigator.pop(context);
@@ -157,7 +157,7 @@ class _AddTutorProfilePageState extends State<AddTutorProfilePage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text('Save Profile'),
+                  child: const Text('Save Profile'),
                 ),
               ],
             ),

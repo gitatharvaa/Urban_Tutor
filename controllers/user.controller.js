@@ -1,20 +1,3 @@
-// const UserService = require('../services/user.services');
-// const userService = require('../services/user.services')
-
-
-// // for frontend
-// exports.register = async(req, res, next)=>{
-//     try{
-//         const {username, email, password} = req.body;
-
-//         const successRes = await UserService.registerUser(username, email, password);
-
-//         res.json({status: true, success:"User Registered Successfully"});
-//     }
-//     catch (error) {
-//         throw error
-//     }
-// }
 
 const UserService = require('../services/user.services');
 

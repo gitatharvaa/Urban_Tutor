@@ -6,11 +6,11 @@ class LevelProgressCard extends StatelessWidget {
   final int expToNextLevel;
 
   const LevelProgressCard({
-    Key? key,
+    super.key,
     required this.level,
     required this.currentExp,
     required this.expToNextLevel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

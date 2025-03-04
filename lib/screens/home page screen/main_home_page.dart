@@ -96,7 +96,7 @@ class _MainHomePageState extends State<MainHomePage> {
         useMaterial3: true,
       ),
       child: Scaffold(
-        backgroundColor: _colorScheme.background,
+        backgroundColor: _colorScheme.surface,
         drawer: ResponsiveMainDrawer(
           onSelectedScreen: _setScreen,
         ),

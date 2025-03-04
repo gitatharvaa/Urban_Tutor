@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:urban_tutor/notes_provider.dart';
+import 'package:urban_tutor/screens/add_notes_page.dart';
 
 class NotesPage extends StatefulWidget {
   final String grade;
@@ -11,55 +14,43 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   List<String> subjects = [
-    'Mathematics', 
-    'Science', 
-    'English', 
-    'Hindi', 
+    'All',
+    'Mathematics',
+    'Science',
+    'Marathi',
+    'English',
+    'Hindi',
+    'French',
+    'Sanskrit',
+    'Geography',
     'Social Studies'
   ];
 
   List<String> difficultyLevels = ['All', 'Easy', 'Medium', 'Advanced'];
-  
   String selectedSubject = 'All';
   String selectedDifficulty = 'All';
   String searchQuery = '';
 
-  List<Map<String, dynamic>> notesData = [
-    {
-      'title': 'Algebra Basics',
-      'subject': 'Mathematics',
-      'difficulty': 'Easy',
-      'pages': 15,
-      'downloads': 250,
-      'icon': Icons.calculate
-    },
-    {
-      'title': 'Chemical Reactions',
-      'subject': 'Science',
-      'difficulty': 'Medium',
-      'pages': 22,
-      'downloads': 180,
-      'icon': Icons.science
-    },
-    {
-      'title': 'Shakespeare Summary',
-      'subject': 'English',
-      'difficulty': 'Advanced',
-      'pages': 30,
-      'downloads': 120,
-      'icon': Icons.book
-    },
-    // Add more dummy notes
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotesProvider>().fetchNotes(
+        grade: widget.grade,
+        subject: selectedSubject == 'All' ? null : selectedSubject,
+        difficulty: selectedDifficulty == 'All' ? null : selectedDifficulty,
+      );
+    });
+  }
 
+  // Add this getter to fix the filteredNotes error
   List<Map<String, dynamic>> get filteredNotes {
-    return notesData.where((note) {
-      final matchesSubject = selectedSubject == 'All' || note['subject'] == selectedSubject;
-      final matchesDifficulty = selectedDifficulty == 'All' || note['difficulty'] == selectedDifficulty;
-      final matchesSearch = note['title'].toLowerCase().contains(searchQuery.toLowerCase());
-      
-      return matchesSubject && matchesDifficulty && matchesSearch;
-    }).toList();
+    return context.watch<NotesProvider>().filterNotesForGrade(
+          grade: widget.grade,
+          subject: selectedSubject,
+          difficulty: selectedDifficulty,
+          searchQuery: searchQuery,
+        );
   }
 
   @override
@@ -76,7 +67,6 @@ class _NotesPageState extends State<NotesPage> {
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -94,8 +84,6 @@ class _NotesPageState extends State<NotesPage> {
               },
             ),
           ),
-
-          // Subject Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Padding(
@@ -118,8 +106,6 @@ class _NotesPageState extends State<NotesPage> {
               ),
             ),
           ),
-
-          // Notes Grid
           Expanded(
             child: filteredNotes.isEmpty
                 ? const Center(child: Text('No notes found'))
@@ -142,7 +128,6 @@ class _NotesPageState extends State<NotesPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Decorative Header
                             Container(
                               height: 120,
                               decoration: BoxDecoration(
@@ -186,7 +171,8 @@ class _NotesPageState extends State<NotesPage> {
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: _getDifficultyColor(note['difficulty']),
                                           borderRadius: BorderRadius.circular(8),
@@ -210,14 +196,17 @@ class _NotesPageState extends State<NotesPage> {
                                         children: [
                                           const Icon(Icons.pages, size: 16, color: Colors.grey),
                                           const SizedBox(width: 4),
-                                          Text('${note['pages']} Pages', style: const TextStyle(fontSize: 12)),
+                                          Text('${note['pages']} Pages',
+                                              style: const TextStyle(fontSize: 12)),
                                         ],
                                       ),
                                       Row(
                                         children: [
-                                          const Icon(Icons.download, size: 16, color: Colors.green),
+                                          const Icon(Icons.download,
+                                              size: 16, color: Colors.green),
                                           const SizedBox(width: 4),
-                                          Text('${note['downloads']}', style: const TextStyle(fontSize: 12)),
+                                          Text('${note['downloads']}',
+                                              style: const TextStyle(fontSize: 12)),
                                         ],
                                       ),
                                     ],
@@ -232,6 +221,18 @@ class _NotesPageState extends State<NotesPage> {
                   ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddNotesPage(grade: widget.grade),
+            ),
+          );
+        },
+        backgroundColor: Colors.orange[200],
+        child: const Icon(Icons.add),
       ),
     );
   }

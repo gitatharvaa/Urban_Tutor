@@ -4,9 +4,9 @@ class LeaderboardCard extends StatelessWidget {
   final List<Map<String, dynamic>> leaderboardData;
 
   const LeaderboardCard({
-    Key? key,
+    super.key,
     required this.leaderboardData,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

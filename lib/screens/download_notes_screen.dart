@@ -11,7 +11,7 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   late List<Note> notes;
   String _searchQuery = '';
-  String _selectedSubject = 'All';
+  final String _selectedSubject = 'All';
   NoteType? _selectedType;
 
   @override

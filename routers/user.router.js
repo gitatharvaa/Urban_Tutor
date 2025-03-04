@@ -1,6 +1,6 @@
 const router = require('express').Router();
 
-const UserController = require("../controller/user.controller");
+const UserController = require("../controllers/user.controller");
 
 router.post('/registration',UserController.register);//this is API which is hit by user
             //above is our API name

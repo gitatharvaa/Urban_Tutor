@@ -6,10 +6,10 @@ class QuestCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const QuestCard({
-    Key? key,
+    super.key,
     required this.quest,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import 'package:urban_tutor/config.dart';
 import 'dart:convert';
 
 class AuthService {
-  static final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   // Save credentials securely
   static Future<void> saveCredentials({

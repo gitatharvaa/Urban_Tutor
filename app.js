@@ -1,31 +1,36 @@
-// const express = require('express');
-// const body_parser = require('body-parser');// to check whatever data comes from the body of req.body
-// const userRouter = require('./routers/user.router');
-
-// const app = express();
-// app.use(body_parser.json());
-// app.use('/', userRouter);
-
-// module.exports = app;
-
 const express = require('express');
-const body_parser = require('body-parser');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const path = require('path');
 const userRouter = require('./routers/user.router');
+const noteRouter = require('./routers/note.router');
 
 const app = express();
 
-// Add CORS middleware
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
+// Use cors middleware instead of custom implementation
+app.use(cors({
+    origin: '*', // In production, replace with specific origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+}));
 
-app.use(body_parser.json());
+// Middleware for parsing JSON and url-encoded data
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// API routes
 app.use('/api/user', userRouter);
+app.use('/api/notes', noteRouter);
+
+// 404 handler
+app.use((req, res, next) => {
+    res.status(404).json({
+        status: false,
+        message: 'Route not found'
+    });
+});
 
 module.exports = app;
