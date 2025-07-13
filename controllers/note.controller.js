@@ -37,42 +37,23 @@ class NoteController {
         try {
           upload(req, res, async (err) => {
             if (err instanceof multer.MulterError) {
-              return res.status(400).json({
-                status: false,
-                message: 'File upload error',
-                error: err.message
-              });
+              return res.status(400).json({ status: false, message: 'File upload error', error: err.message });
             } else if (err) {
-              return res.status(400).json({
-                status: false,
-                message: err.message
-              });
+              return res.status(400).json({ status: false, message: err.message });
+            }
+      
+            // Ensure a file is uploaded
+            if (!req.file) {
+              return res.status(400).json({ status: false, message: 'File is required' });
             }
       
             try {
-              const { 
-                title, 
-                description, 
-                subject,
-                difficulty,
-                grade,
-                schoolName,
-                uploaderName,
-                fileSize 
-              } = req.body;
+              const { title, description, subject, difficulty, grade, schoolName, uploaderName, fileSize } = req.body;
       
-              // Log the request body
-              console.log('Request body:', req.body);
-      
-              // Validate required fields
               if (!title || !grade || !subject) {
-                return res.status(400).json({
-                  status: false,
-                  message: 'Title, grade, and subject are required'
-                });
+                return res.status(400).json({ status: false, message: 'Title, grade, and subject are required' });
               }
       
-              // Create note object
               const noteData = {
                 title,
                 description,
@@ -82,42 +63,26 @@ class NoteController {
                 schoolName,
                 uploaderName,
                 fileSize: parseInt(fileSize),
-                fileUrl: req.file ? `/uploads/notes/${req.file.filename}` : null,
+                fileUrl: `/uploads/notes/${req.file.filename}`,
                 downloads: 0,
-                pages: 10 // Default value
+                pages: 10 // Default
               };
       
-              // Log the note data
-              console.log('Note data:', noteData);
-      
-              // Save to database
               const note = new NoteModel(noteData);
               const savedNote = await note.save();
       
-              // Log the saved note
-              console.log('Saved note:', savedNote);
-      
-              res.status(201).json({
-                status: true,
-                message: 'Note created successfully',
-                data: savedNote
-              });
+              res.status(201).json({ status: true, message: 'Note created successfully', data: savedNote });
             } catch (error) {
-              if (req.file) {
-                fs.unlinkSync(req.file.path);
-              }
+              fs.unlinkSync(req.file.path); // Delete file on error
               console.error('Error creating note:', error);
-              throw error;
+              res.status(500).json({ status: false, message: 'Error creating note', error: error.message });
             }
           });
         } catch (error) {
-          res.status(500).json({
-            status: false,
-            message: 'Error creating note',
-            error: error.message
-          });
+          res.status(500).json({ status: false, message: 'Error creating note', error: error.message });
         }
       }
+      
 
     // Get notes by grade
     async getNotesByGrade(req, res) {
