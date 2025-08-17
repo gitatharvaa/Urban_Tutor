@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class NotesApiService {
-  static const String baseUrl = 'http://192.168.0.102:3000/api'; // For Android emulator
+  static const String baseUrl = 'http://192.168.0.103:3000/api'; // For Android emulator
   // Use 'http://localhost:3000/api' for iOS simulator
 
   Future<Map<String, dynamic>> uploadNote({

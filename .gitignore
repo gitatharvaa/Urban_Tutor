@@ -37,7 +37,34 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# Android Studio build outputs
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# --- Sensitive Firebase/Signing/Env files ---
+
+# Android signing
+android/app/*.jks
+android/app/*.keystore
+android/key.properties
+
+# Apple signing
+**/AuthKey_*.p8
+**/*.p12
+**/*.mobileprovision
+**/*.cer
+
+# Service accounts (Admin SDK / Play Console)
+**/*serviceAccount*.json
+**/*service-account*.json
+**/*credentials*.json
+**/google-play-*.json
+
+# Env files
+.env
+.env.*
+
+# Firebase accidental duplicates
+android/app/google-services (1).json
+ios/Runner/GoogleService-Info (1).plist

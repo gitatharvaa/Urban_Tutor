@@ -1,3 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:urban_tutor/notes_provider.dart';
@@ -15,6 +18,18 @@ final theme = ThemeData(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+        options: const FirebaseOptions(
+            apiKey: "AIzaSyDdvXRmXOK7N8osGoh3DoMI6XFaov3zgUc",
+            authDomain: "urban-tutor-99377.firebaseapp.com",
+            projectId: "urban-tutor-99377",
+            storageBucket: "urban-tutor-99377.firebasestorage.app",
+            messagingSenderId: "803971522773",
+            appId: "1:803971522773:web:edf0336f3a5cbd00a7025c"));
+  } else {
+    Firebase.initializeApp();
+  }
 
   String? token =
       await AuthService.isTokenValid() ? await AuthService.getToken() : null;
@@ -40,3 +55,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+/* Always remember to change firebase directory through running flutterfire configure */

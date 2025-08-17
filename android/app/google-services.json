@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "803971522773",
+    "project_id": "urban-tutor-99377",
+    "storage_bucket": "urban-tutor-99377.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803971522773:android:388da5f9a4d10175a7025c",
+        "android_client_info": {
+          "package_name": "com.example.urban_tutor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCY1nkeLXFY7uBh7kTm6kfapmzwmM6pUcY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

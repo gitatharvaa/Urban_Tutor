@@ -1,4 +1,4 @@
-const url = 'http://192.168.0.102:3000';
+const url = 'http://192.168.0.103:3000';
 
 // User endpoints
 const registration = '$url/api/user/registration';
