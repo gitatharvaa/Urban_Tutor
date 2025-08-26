@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:urban_tutor/data/dummy_teacher_data.dart';
+import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:urban_tutor/main_drawer.dart';
+import 'package:urban_tutor/models/tutor_model.dart';
+import 'package:urban_tutor/providers/auth_provider.dart';
+import 'package:urban_tutor/providers/tutor_provider.dart';
+import 'package:urban_tutor/screens/add_tutor_profile_page.dart';
+import 'package:urban_tutor/screens/login_screen.dart';
 import 'package:urban_tutor/screens/teacher_detail_page.dart';
-import 'package:urban_tutor/screens/add_tutor_profile_page.dart'; // Add this import
+import 'package:urban_tutor/utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -11,44 +17,39 @@ class MainHomePage extends StatefulWidget {
   const MainHomePage({super.key});
 
   @override
-  _MainHomePageState createState() => _MainHomePageState();
+  State<MainHomePage> createState() => _MainHomePageState();
 }
 
 class _MainHomePageState extends State<MainHomePage> {
   String _searchQuery = '';
-  late List<Map<String, dynamic>> _filteredTeachers;
-
-  final ColorScheme _colorScheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF6A5ACD),
-    primary: const Color(0xFF6A5ACD),
-    secondary: const Color(0xFFFF6B6B),
-    background: const Color(0xFFF4F4F8),
-    surface: Colors.white,
-  );
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _filteredTeachers = dummyTeacherData;
-  }
-
-  void _filterTeachers(String query) {
-    setState(() {
-      _searchQuery = query;
-      _filteredTeachers = query.isEmpty
-          ? dummyTeacherData
-          : dummyTeacherData
-              .where((teacher) => teacher['name']
-                  .toString()
-                  .toLowerCase()
-                  .contains(query.toLowerCase()))
-              .toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TutorProvider>(context, listen: false).loadTutors();
     });
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterTutors(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+    Provider.of<TutorProvider>(context, listen: false).filterTutors(query);
+  }
+
   void _setScreen(String identifier) {
-    // Handle screen changes here
     switch (identifier) {
+      case 'logout':
+        _handleLogout();
+        break;
       case 'profile':
         // Handle profile screen
         break;
@@ -61,18 +62,29 @@ class _MainHomePageState extends State<MainHomePage> {
     }
   }
 
+  void _handleLogout() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.signOut();
+    
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   void _openFilterDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Filter Tutors',
-              style: TextStyle(color: _colorScheme.primary)),
-          content: const Text('Filter functionality coming soon!'),
+          title: Text('Filter Tutors', style: TextStyle(color: AppColors.primaryBlue)),
+          content: const Text('Advanced filtering functionality coming soon!'),
           actions: [
             TextButton(
-              child: Text('Close',
-                  style: TextStyle(color: _colorScheme.secondary)),
+              child: Text('Close', style: TextStyle(color: AppColors.primaryBlue)),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -84,71 +96,75 @@ class _MainHomePageState extends State<MainHomePage> {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-
-    // Calculate FAB size based on screen dimensions
     final double fabSize = screenWidth < 600 ? 56.0 : 72.0;
     final double fabIconSize = screenWidth < 600 ? 24.0 : 32.0;
 
     return Theme(
       data: ThemeData(
-        colorScheme: _colorScheme,
+        colorScheme: AppColors.educationalColorScheme,
         useMaterial3: true,
       ),
-      child: Scaffold(
-        backgroundColor: _colorScheme.surface,
-        drawer: ResponsiveMainDrawer(
-          onSelectedScreen: _setScreen,
-        ),
-        appBar: _buildAppBar(),
-        floatingActionButton: SizedBox(
-          width: fabSize,
-          height: fabSize,
-          child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddTutorProfilePage(),
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          if (!authProvider.isAuthenticated) {
+            return const LoginScreen();
+          }
+
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            drawer: ResponsiveMainDrawer(
+              onSelectedScreen: _setScreen,
+            ),
+            appBar: _buildAppBar(),
+            floatingActionButton: SizedBox(
+              width: fabSize,
+              height: fabSize,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddTutorProfilePage(),
+                    ),
+                  );
+                },
+                backgroundColor: AppColors.primaryBlue,
+                child: Icon(
+                  FontAwesomeIcons.chalkboardUser,
+                  semanticLabel: 'Add tutor profile',
+                  size: fabIconSize,
+                  color: Colors.white,
                 ),
-              );
-            },
-            backgroundColor: _colorScheme.secondary,
-            child: Icon(
-              FontAwesomeIcons.chalkboardUser,
-              semanticLabel: 'Add tutor profile',
-              size: fabIconSize,
-              color: Colors.white,
+              ),
             ),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
-            child: CustomScrollView(
-              slivers: [
-                _buildHeader(),
-                _buildSearchBar(),
-                _buildTeacherList(),
-              ],
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            body: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+                child: CustomScrollView(
+                  slivers: [
+                    _buildHeader(),
+                    _buildSearchBar(),
+                    _buildTeacherList(),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-
-   PreferredSize _buildAppBar() {
+  PreferredSize _buildAppBar() {
     return PreferredSize(
       preferredSize: const Size.fromHeight(60.0),
       child: AppBar(
-        backgroundColor: const Color.fromARGB(255, 220, 53, 69), 
+        backgroundColor: AppColors.primaryBlue,
         elevation: 0,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white, size: Material.defaultSplashRadius,),
+            icon: const Icon(Icons.menu, color: Colors.white, size: 24),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -172,9 +188,10 @@ class _MainHomePageState extends State<MainHomePage> {
         child: Text(
           'Find Your Perfect Tutor',
           style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: _colorScheme.primary),
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
       ),
     );
@@ -188,27 +205,28 @@ class _MainHomePageState extends State<MainHomePage> {
           children: [
             Expanded(
               child: TextField(
+                controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search by name...',
-                  prefixIcon: Icon(Icons.search, color: _colorScheme.primary),
+                  hintText: 'Search by name, subject, or location...',
+                  prefixIcon: Icon(Icons.search, color: AppColors.primaryBlue),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: AppColors.surface,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                onChanged: _filterTeachers,
+                onChanged: _filterTutors,
               ),
             ),
             const SizedBox(width: 8),
             Container(
               decoration: BoxDecoration(
-                color: _colorScheme.secondary,
+                color: AppColors.primaryGreen,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
@@ -222,46 +240,90 @@ class _MainHomePageState extends State<MainHomePage> {
     );
   }
 
-  SliverList _buildTeacherList() {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final teacher = _filteredTeachers[index];
-          final teacherMap =
-              teacher.map((key, value) => MapEntry(key, value.toString()));
+  SliverToBoxAdapter _buildTeacherList() {
+    return SliverToBoxAdapter(
+      child: Consumer<TutorProvider>(
+        builder: (context, tutorProvider, child) {
+          if (tutorProvider.isLoading) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        TeacherDetailPage(teacher: teacherMap),
-                  ),
-                );
-              },
-              child: _buildTeacherCard(teacher),
-            ),
+          if (tutorProvider.filteredTutors.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: 64,
+                      color: AppColors.textLight,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No tutors found',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    if (_searchQuery.isNotEmpty)
+                      Text(
+                        'Try adjusting your search criteria',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: tutorProvider.filteredTutors.length,
+            itemBuilder: (context, index) {
+              final tutor = tutorProvider.filteredTutors[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TeacherDetailPage(tutor: tutor),
+                      ),
+                    );
+                  },
+                  child: _buildTutorCard(tutor),
+                ),
+              );
+            },
           );
         },
-        childCount: _filteredTeachers.length,
       ),
     );
   }
 
-  Widget _buildTeacherCard(Map<String, dynamic> teacher) {
+  Widget _buildTutorCard(TutorModel tutor) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -271,184 +333,216 @@ class _MainHomePageState extends State<MainHomePage> {
           children: [
             Row(
               children: [
-                _buildTeacherImage(teacher['imageUrl']),
+                _buildTutorImage(tutor.personalInfo.profileImageUrl),
                 const SizedBox(width: 16),
-                _buildTeacherInfo(teacher),
+                _buildTutorInfo(tutor),
               ],
             ),
-            const SizedBox(height: 16),
-            const Divider(thickness: 0.5, height: 10, indent: 5, endIndent: 5,),
-            const SizedBox(height: 5),
-            _buildSocialMediaButtons(),
+            if (_hasSocialMedia(tutor.socialMedia)) ...[
+              const SizedBox(height: 16),
+              const Divider(thickness: 0.5, height: 10),
+              const SizedBox(height: 8),
+              _buildSocialMediaButtons(tutor.socialMedia),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTeacherImage(String? imageUrl) {
+  Widget _buildTutorImage(String? imageUrl) {
     return Container(
+      width: 85,
+      height: 90,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3), width: 2),
       ),
-      padding: const EdgeInsets.all(3),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(50),
-        child: Image.network(
-          imageUrl ?? '',
-          width: 85,
-          height: 90,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) =>
-              Icon(Icons.person, size: 85, color: _colorScheme.primary),
-        ),
+        borderRadius: BorderRadius.circular(48),
+        child: imageUrl != null && imageUrl.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: AppColors.background,
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: AppColors.background,
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+              )
+            : Container(
+                color: AppColors.background,
+                child: Icon(
+                  Icons.person,
+                  size: 40,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
       ),
     );
   }
 
-Widget _buildTeacherInfo(Map<String, dynamic> teacher) {
-  return Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            teacher['name'] ?? '',
-            style: GoogleFonts.raleway(  // Professional, modern sans-serif for headings
+  Widget _buildTutorInfo(TutorModel tutor) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            tutor.personalInfo.fullName,
+            style: GoogleFonts.raleway(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: AppColors.textPrimary,
               letterSpacing: 0.5,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-        ),
-        const SizedBox(height: 6),  // Slightly increased spacing
-        _buildDetailRow(
-          Icons.location_on, 
-          teacher['location'] ?? '',
-          Colors.black,
-          textStyle: GoogleFonts.sourceSans3(  // Clean, readable sans-serif for body text
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.2,
+          const SizedBox(height: 6),
+          _buildDetailRow(
+            Icons.location_on,
+            '${tutor.location.area}, ${tutor.location.city}',
+            AppColors.textSecondary,
           ),
-        ),
-        const SizedBox(height: 4),
-        _buildDetailRow(
-          Icons.school,
-          "Qualification: ${teacher['qualification'] ?? ''}",
-          Colors.black,
-          textStyle: GoogleFonts.sourceSans3(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.2,
+          const SizedBox(height: 4),
+          _buildDetailRow(
+            Icons.school,
+            tutor.professionalInfo.qualification,
+            AppColors.textSecondary,
           ),
-        ),
-        const SizedBox(height: 4),
-        _buildDetailRow(
-          Icons.subject,
-          "Subject: ${teacher['subject'] ?? ''}",
-          Colors.black,
-          textStyle: GoogleFonts.sourceSans3(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            letterSpacing: 0.2,
+          const SizedBox(height: 4),
+          _buildDetailRow(
+            Icons.subject,
+            tutor.professionalInfo.subjects.take(2).join(', ') +
+                (tutor.professionalInfo.subjects.length > 2 ? '...' : ''),
+            AppColors.textSecondary,
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-
-
-  Widget _buildSocialMediaButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green,size: 30,),
-          onPressed: () async {
-            const url =
-                'whatsapp://send?phone=+1234567890';
-            if (await canLaunchUrl(url as Uri)) {
-              await launchUrl(url as Uri);
-            }
-          },
-        ),
-        const SizedBox(width: 33),
-        IconButton(
-          icon: const FaIcon(FontAwesomeIcons.facebook, color: Colors.blue, size: 30,),
-          onPressed: () async {
-            const url = 'https://facebook.com/profile';
-            if (await canLaunchUrl(url as Uri)) {
-              await launchUrl(url as Uri);
-            }
-          },
-        ),
-        const SizedBox(width: 33),
-        IconButton(
-          icon: const FaIcon(FontAwesomeIcons.instagram,
-          size: 30,
-              color: Color(0xFFE4405F)),
-          onPressed: () async {
-            final Uri url = Uri.parse('instagram://user?username=USERNAME');
-            final Uri webUrl = Uri.parse('https://www.instagram.com/USERNAME');
-            try {
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } else {
-                if (await canLaunchUrl(webUrl)) {
-                  await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-                }
-              }
-            } catch (e) {
-              print('Could not launch Instagram');
-            }
-          },
-        ),
-        const SizedBox(width: 33),
-        IconButton(
-          icon: const FaIcon(FontAwesomeIcons.xTwitter,
-          size: 30,
-              color: Colors.black),
-          onPressed: () async {
-            final Uri url = Uri.parse('twitter://user?screen_name=USERNAME');
-            final Uri webUrl = Uri.parse('https://twitter.com/USERNAME');
-            try {
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } else {
-                if (await canLaunchUrl(webUrl)) {
-                  await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-                }
-              }
-            } catch (e) {
-              print('Could not launch Twitter');
-            }
-          },
-        ),
-      ],
+          const SizedBox(height: 4),
+          _buildDetailRow(
+            Icons.currency_rupee,
+            '₹${tutor.professionalInfo.monthlyRate.toInt()}/month',
+            AppColors.primaryGreen,
+          ),
+          if (tutor.ratings.totalReviews > 0) ...[
+            const SizedBox(height: 4),
+            _buildRatingRow(tutor.ratings.averageRating, tutor.ratings.totalReviews),
+          ],
+        ],
+      ),
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String text, Color iconColor, {TextStyle? textStyle}) {
+  Widget _buildDetailRow(IconData icon, String text, Color color) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: iconColor),
+        Icon(icon, size: 16, color: color),
         const SizedBox(width: 4),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14, color: color),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildRatingRow(double rating, int totalReviews) {
+    return Row(
+      children: [
+        ...List.generate(5, (index) {
+          return Icon(
+            index < rating ? Icons.star : Icons.star_border,
+            size: 16,
+            color: Colors.amber,
+          );
+        }),
+        const SizedBox(width: 4),
+        Text(
+          '${rating.toStringAsFixed(1)} ($totalReviews reviews)',
+          style: TextStyle(fontSize: 12, color: AppColors.textLight),
+        ),
+      ],
+    );
+  }
+
+  bool _hasSocialMedia(SocialMediaInfo socialMedia) {
+    return socialMedia.whatsapp.isNotEmpty ||
+           socialMedia.facebook.isNotEmpty ||
+           socialMedia.instagram.isNotEmpty ||
+           socialMedia.twitter.isNotEmpty;
+  }
+
+  Widget _buildSocialMediaButtons(SocialMediaInfo socialMedia) {
+    List<Widget> buttons = [];
+
+    if (socialMedia.whatsapp.isNotEmpty) {
+      buttons.add(
+        IconButton(
+          icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 28),
+          onPressed: () => _launchUrl('https://wa.me/${socialMedia.whatsapp}'),
+        ),
+      );
+    }
+
+    if (socialMedia.facebook.isNotEmpty) {
+      buttons.add(
+        IconButton(
+          icon: const FaIcon(FontAwesomeIcons.facebook, color: Colors.blue, size: 28),
+          onPressed: () => _launchUrl(socialMedia.facebook.startsWith('http') 
+              ? socialMedia.facebook 
+              : 'https://facebook.com/${socialMedia.facebook}'),
+        ),
+      );
+    }
+
+    if (socialMedia.instagram.isNotEmpty) {
+      buttons.add(
+        IconButton(
+          icon: const FaIcon(FontAwesomeIcons.instagram, color: Color(0xFFE4405F), size: 28),
+          onPressed: () => _launchUrl('https://www.instagram.com/${socialMedia.instagram}'),
+        ),
+      );
+    }
+
+    if (socialMedia.twitter.isNotEmpty) {
+      buttons.add(
+        IconButton(
+          icon: const FaIcon(FontAwesomeIcons.xTwitter, color: Colors.black, size: 28),
+          onPressed: () => _launchUrl('https://twitter.com/${socialMedia.twitter}'),
+        ),
+      );
+    }
+
+    if (buttons.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: buttons,
+    );
+  }
+
+  void _launchUrl(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      print('Could not launch $url: $e');
+    }
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 // import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:urban_tutor/auth/login_screen.dart';
-import 'package:urban_tutor/services/auth_service.dart';
+import 'package:urban_tutor/auth/login_screen_ns.dart';
+import 'package:urban_tutor/services/auth_service_ns.dart';
 
 class ResponsiveMainDrawer extends StatelessWidget {
   const ResponsiveMainDrawer({
@@ -13,7 +13,7 @@ class ResponsiveMainDrawer extends StatelessWidget {
     void _logout(BuildContext context) async {
     try {
       // Remove the token using AuthService
-      await AuthService.logout();
+      await AuthServiceNs.logout();
       
       if (context.mounted) {
         // Navigate to login screen and remove all previous routes

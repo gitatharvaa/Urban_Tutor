@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:urban_tutor/services/auth_service.dart';
+import 'package:urban_tutor/services/auth_service_ns.dart';
 import 'package:flutter/material.dart';
-import 'package:urban_tutor/auth/signup_screen.dart';
+import 'package:urban_tutor/auth/signup_screen_ns.dart';
 import 'package:urban_tutor/config.dart';
 import 'package:urban_tutor/screens/home_page.dart';
 import 'package:http/http.dart' as http;
@@ -28,9 +28,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _checkAutoLogin() async {
     // Check if token is still valid
-    bool isTokenValid = await AuthService.isTokenValid();
+    bool isTokenValid = await AuthServiceNs.isTokenValid();
     if (isTokenValid) {
-      String? token = await AuthService.getToken();
+      String? token = await AuthServiceNs.getToken();
       if (token != null) {
         _navigateToHome(token);
       }
@@ -44,13 +44,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       // First, try offline login
-      bool offlineLoginSuccess = await AuthService.offlineLogin(
+      bool offlineLoginSuccess = await AuthServiceNs.offlineLogin(
         _emailController.text, 
         _passwordController.text
       );
 
       if (offlineLoginSuccess) {
-        String? token = await AuthService.getToken();
+        String? token = await AuthServiceNs.getToken();
         if (token != null) {
           _navigateToHome(token);
           return;
@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
         String token = jsonResponse['token'];
         
         // Save credentials for offline use
-        await AuthService.saveCredentials(
+        await AuthServiceNs.saveCredentials(
           username: jsonResponse['username'] ?? '', 
           email: _emailController.text, 
           password: _passwordController.text, 

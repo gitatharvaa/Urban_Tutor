@@ -1,6 +1,7 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
+    // id "kotlin-android"
+    id "org.jetbrains.kotlin.android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
     id 'com.google.gms.google-services'
@@ -26,12 +27,17 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.example.urban_tutor"
-    compileSdk = 34 //flutter.compileSdkVersion
+    compileSdk 35 //34 //flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17 //8
+        targetCompatibility = JavaVersion.VERSION_17 //8
+    }
+
+        // ✅ Ensure Kotlin also targets JVM 17
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -39,8 +45,8 @@ android {
         applicationId = "com.example.urban_tutor"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdk = flutter.minSdkVersion
-        targetSdk = 34 //flutter.targetSdkVersion
+        minSdk 23 //flutter.minSdkVersion
+        targetSdk 35 //34 //flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
     }
@@ -60,4 +66,6 @@ flutter {
 
 dependencies{
     implementation platform('com.google.firebase:firebase-bom:34.1.0')
+        // ✅ Add this line for core library desugaring
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }

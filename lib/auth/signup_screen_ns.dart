@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:urban_tutor/services/auth_service.dart';
+import 'package:urban_tutor/services/auth_service_ns.dart';
 import 'package:urban_tutor/screens/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:urban_tutor/config.dart';
-import 'package:urban_tutor/auth/login_screen.dart';
+import 'package:urban_tutor/auth/login_screen_ns.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -61,7 +61,7 @@ class _SignupScreenState extends State<SignupScreen> {
             final token = jsonResponse['token'] ?? '';
 
             // Save credentials for offline use
-            await AuthService.saveCredentials(
+            await AuthServiceNs.saveCredentials(
               username: _nameController.text.trim(),
               email: _emailController.text.trim(), 
               password: _passwordController.text, 

@@ -1,78 +1,94 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:http/http.dart' as http;
-import 'package:urban_tutor/config.dart';
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Save credentials securely
-  static Future<void> saveCredentials({
-    required String username,
-    required String email, 
-    required String password, 
-    required String token
+  // Get current user
+  User? get currentUser => _auth.currentUser;
+
+  // Auth state changes stream
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  // Sign up with email and password
+  Future<UserCredential?> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phone,
   }) async {
-    await _secureStorage.write(key: 'user_username', value: username);
-    await _secureStorage.write(key: 'user_email', value: email);
-    await _secureStorage.write(key: 'user_password', value: password);
-    await _secureStorage.write(key: 'user_token', value: token);
-  }
-
-  // Retrieve stored credentials
-  static Future<Map<String, String?>> getStoredCredentials() async {
-    return {
-      'username': await _secureStorage.read(key: 'user_username'),
-      'email': await _secureStorage.read(key: 'user_email'),
-      'password': await _secureStorage.read(key: 'user_password'),
-      'token': await _secureStorage.read(key: 'user_token')
-    };
-  }
-
-  // Validate token locally
-  static Future<bool> isTokenValid() async {
-    String? token = await _secureStorage.read(key: 'user_token');
-    
-    if (token == null) return false;
-    
-    // return !JwtDecoder.isExpired(token);
-    return true; // Always return true, removing expiration check
-  }
-
-  // Offline login validation
-  static Future<bool> offlineLogin(String email, String password) async {
-    String? storedEmail = await _secureStorage.read(key: 'user_email');
-    String? storedPassword = await _secureStorage.read(key: 'user_password');
-    
-    return email == storedEmail && password == storedPassword;
-  }
-
-  // Online token validation
-  static Future<bool> validateTokenOnline(String token) async {
     try {
-      var response = await http.post(
-        Uri.parse('$url/api/validate-token'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
-        }
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      return json.decode(response.body)['valid'] ?? false;
-    } catch (e) {
-      // Network error, fallback to local validation
-      return isTokenValid();
+      // Create user document in Firestore
+      await _firestore.collection('users').doc(result.user!.uid).set({
+        'fullName': fullName,
+        'email': email,
+        'phone': phone,
+        'userType': 'tutor',
+        'createdAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+      });
+
+      return result;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
     }
   }
 
-  // Remove all stored credentials
-  static Future<void> logout() async {
-    await _secureStorage.deleteAll();
+  // Sign in with email and password
+  Future<UserCredential?> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return result;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
   }
 
-  // Get stored token
-  static Future<String?> getToken() async {
-    return await _secureStorage.read(key: 'user_token');
+  // Sign out
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      throw Exception('Failed to sign out: ${e.toString()}');
+    }
+  }
+
+  // Reset password
+  Future<void> resetPassword({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
+  // Handle Firebase Auth exceptions
+  String _handleAuthException(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No user found with this email address.';
+      case 'wrong-password':
+        return 'Wrong password provided.';
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+      case 'weak-password':
+        return 'Password is too weak.';
+      case 'invalid-email':
+        return 'Email address is invalid.';
+      default:
+        return 'Authentication failed: ${e.message}';
+    }
   }
 }

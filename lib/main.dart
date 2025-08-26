@@ -1,43 +1,98 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import 'firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cloudinary_flutter/cloudinary_context.dart';
+import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:urban_tutor/notes_provider.dart';
-import 'package:urban_tutor/services/auth_service.dart';
-import 'package:urban_tutor/auth/login_screen.dart';
-import 'package:urban_tutor/screens/home_page.dart';
 import 'package:provider/provider.dart';
+
+// Your existing imports
+import 'package:urban_tutor/providers/auth_provider.dart';
+import 'package:urban_tutor/notes_provider.dart';
+import 'package:urban_tutor/services/auth_service_ns.dart';
+import 'package:urban_tutor/auth/login_screen_ns.dart';
+import 'package:urban_tutor/screens/home_page.dart';
+
+// New imports for tutor functionality
+import 'package:urban_tutor/providers/tutor_provider.dart';
+import 'package:urban_tutor/utils/app_colors.dart';
+import 'firebase_options.dart';
 
 final theme = ThemeData(
   useMaterial3: true,
-  colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.indigo, brightness: Brightness.light),
+  colorScheme: AppColors.educationalColorScheme, // Updated to use educational colors
   textTheme: GoogleFonts.latoTextTheme(),
 );
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-        options: const FirebaseOptions(
-            apiKey: "AIzaSyDdvXRmXOK7N8osGoh3DoMI6XFaov3zgUc",
-            authDomain: "urban-tutor-99377.firebaseapp.com",
-            projectId: "urban-tutor-99377",
-            storageBucket: "urban-tutor-99377.firebasestorage.app",
-            messagingSenderId: "803971522773",
-            appId: "1:803971522773:web:edf0336f3a5cbd00a7025c"));
-  } else {
-    Firebase.initializeApp();
+
+  // ➊ Load environment variables for Cloudinary
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    if (kDebugMode) {
+      print('Warning: .env file not found. Cloudinary features may not work.');
+    }
   }
 
-  String? token =
-      await AuthService.isTokenValid() ? await AuthService.getToken() : null;
+  // ➋ Initialize Firebase
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyDdvXRmXOK7N8osGoh3DoMI6XFaov3zgUc",
+        authDomain: "urban-tutor-99377.firebaseapp.com",
+        projectId: "urban-tutor-99377",
+        storageBucket: "urban-tutor-99377.firebasestorage.app",
+        messagingSenderId: "803971522773",
+        appId: "1:803971522773:web:edf0336f3a5cbd00a7025c"
+      ),
+    );
+  } else {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  // ➌ Configure Cloudinary SDK
+  try {
+    final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'];
+    if (cloudName != null && cloudName.isNotEmpty) {
+      CloudinaryContext.cloudinary = Cloudinary.fromCloudName(
+        cloudName: cloudName,
+      );
+      if (kDebugMode) {
+        print('Cloudinary configured with cloud name: $cloudName');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Warning: CLOUDINARY_CLOUD_NAME not found in .env file');
+      }
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error configuring Cloudinary: $e');
+    }
+  }
+
+  // ➍ Check existing token
+  String? token = await AuthServiceNs.isTokenValid() 
+      ? await AuthServiceNs.getToken() 
+      : null;
 
   runApp(
-    MultiProvider(providers: [
-      ChangeNotifierProvider(create: (_) => NotesProvider()),
-    ], child: MyApp(token: token)),
+    MultiProvider(
+      providers: [
+        // Your existing providers
+        ChangeNotifierProvider(create: (_) => NotesProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        
+        // New provider for tutor functionality
+        ChangeNotifierProvider(create: (_) => TutorProvider()),
+      ],
+      child: MyApp(token: token),
+    ),
   );
 }
 
@@ -52,8 +107,23 @@ class MyApp extends StatelessWidget {
       title: 'Urban Tutor',
       theme: theme,
       home: token != null ? HomePage(token: token!) : const LoginScreen(),
+      
+      // Optional: Add named routes for better navigation
+      routes: {
+        '/home': (context) => HomePage(token: token ?? ''),
+        '/login': (context) => const LoginScreen(),
+      },
     );
   }
 }
 
-/* Always remember to change firebase directory through running flutterfire configure */
+/* 
+ * Always remember to change firebase directory through running flutterfire configure 
+ * 
+ * New additions for Cloudinary integration:
+ * 1. dotenv for environment variables
+ * 2. CloudinaryContext initialization
+ * 3. TutorProvider for tutor management
+ * 4. Educational color scheme
+ * 5. Error handling for missing .env file
+ */
