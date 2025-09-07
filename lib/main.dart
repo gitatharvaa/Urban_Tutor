@@ -9,7 +9,9 @@ import 'package:provider/provider.dart';
 
 // Your existing imports
 import 'package:urban_tutor/providers/auth_provider.dart';
-import 'package:urban_tutor/notes_provider.dart';
+import 'package:urban_tutor/providers/notes_provider.dart';
+import 'package:urban_tutor/providers/filter_provider.dart';
+import 'package:urban_tutor/providers/theme_provider.dart';
 import 'package:urban_tutor/services/auth_service_ns.dart';
 import 'package:urban_tutor/auth/login_screen_ns.dart';
 import 'package:urban_tutor/screens/home_page.dart';
@@ -17,13 +19,8 @@ import 'package:urban_tutor/screens/home_page.dart';
 // New imports for tutor functionality
 import 'package:urban_tutor/providers/tutor_provider.dart';
 import 'package:urban_tutor/utils/app_colors.dart';
+import 'package:urban_tutor/utils/theme_config.dart';
 import 'firebase_options.dart';
-
-final theme = ThemeData(
-  useMaterial3: true,
-  colorScheme: AppColors.educationalColorScheme, // Updated to use educational colors
-  textTheme: GoogleFonts.latoTextTheme(),
-);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,9 +81,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        // Theme provider should be first
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        
         // Your existing providers
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => FilterProvider()),
         
         // New provider for tutor functionality
         ChangeNotifierProvider(create: (_) => TutorProvider()),
@@ -102,16 +103,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Urban Tutor',
-      theme: theme,
-      home: token != null ? HomePage(token: token!) : const LoginScreen(),
-      
-      // Optional: Add named routes for better navigation
-      routes: {
-        '/home': (context) => HomePage(token: token ?? ''),
-        '/login': (context) => const LoginScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Urban Tutor',
+          themeMode: themeProvider.themeMode,
+          theme: ThemeConfig.lightTheme,
+          darkTheme: ThemeConfig.darkTheme,
+          home: token != null ? HomePage(token: token!) : const LoginScreen(),
+          
+          // Optional: Add named routes for better navigation
+          routes: {
+            '/home': (context) => HomePage(token: token ?? ''),
+            '/login': (context) => const LoginScreen(),
+          },
+        );
       },
     );
   }
@@ -124,6 +131,7 @@ class MyApp extends StatelessWidget {
  * 1. dotenv for environment variables
  * 2. CloudinaryContext initialization
  * 3. TutorProvider for tutor management
- * 4. Educational color scheme
+ * 4. Educational color scheme with dark mode
  * 5. Error handling for missing .env file
+ * 6. Theme provider integration
  */
