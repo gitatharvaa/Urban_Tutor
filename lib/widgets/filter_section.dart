@@ -4,86 +4,97 @@ import 'package:flutter/material.dart';
 class FilterSection extends StatelessWidget {
   final String title;
   final Widget child;
-  final String? description;
-  final bool isExpanded;
-  final VoidCallback? onToggle;
+  final IconData? icon;
+  final VoidCallback? onClear;
+  final bool showClearButton;
 
   const FilterSection({
     super.key,
     required this.title,
     required this.child,
-    this.description,
-    this.isExpanded = true,
-    this.onToggle,
+    this.icon,
+    this.onClear,
+    this.showClearButton = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 768;
+    final isDesktop = screenWidth > 1024;
+    
+    final titleFontSize = isDesktop ? 18.0 : isTablet ? 16.0 : 15.0;
+    final sectionPadding = isDesktop ? 24.0 : isTablet ? 20.0 : 16.0;
+    
     return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(sectionPadding),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(isDesktop ? 16 : 12),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.dividerColor.withOpacity(0.2),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: isDesktop ? 8 : 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: onToggle,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        if (description != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            description!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ],
+          // Header
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: isDesktop ? 24 : 20,
+                  color: theme.colorScheme.primary,
+                ),
+                SizedBox(width: isDesktop ? 12 : 8),
+              ],
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              if (showClearButton && onClear != null)
+                TextButton(
+                  onPressed: onClear,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isDesktop ? 12 : 8,
+                      vertical: 4,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Clear',
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontSize: isDesktop ? 14 : 12,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (onToggle != null)
-                    Icon(
-                      isExpanded 
-                          ? Icons.keyboard_arrow_up 
-                          : Icons.keyboard_arrow_down,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                ],
-              ),
-            ),
+                ),
+            ],
           ),
-          if (isExpanded) ...[
-            Divider(
-              height: 1,
-              color: theme.colorScheme.outline.withOpacity(0.2),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: child,
-            ),
-          ],
+          SizedBox(height: sectionPadding * 0.75),
+          
+          // Content
+          child,
         ],
       ),
     );

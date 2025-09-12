@@ -1,30 +1,37 @@
+// lib/providers/tutor_provider.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:urban_tutor/services/cloudinary_service.dart';
 import '../models/tutor_model.dart';
+import '../models/filter_model.dart';
 import '../services/tutor_service.dart';
 
 class TutorProvider with ChangeNotifier {
   final TutorService _tutorService = TutorService();
-
   List<TutorModel> _tutors = [];
   List<TutorModel> _filteredTutors = [];
   bool _isLoading = false;
   String? _errorMessage;
   double _uploadProgress = 0;
+  FilterModel? _activeFilter;
 
   List<TutorModel> get tutors => _tutors;
   List<TutorModel> get filteredTutors => _filteredTutors;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   double get uploadProgress => _uploadProgress;
+  FilterModel? get activeFilter => _activeFilter;
 
   // Load all tutors
   void loadTutors() {
     _tutorService.getAllTutors().listen(
       (tutors) {
         _tutors = tutors;
-        _filteredTutors = tutors;
+        if (_activeFilter != null) {
+          _applyFilterToTutors(_activeFilter!);
+        } else {
+          _filteredTutors = tutors;
+        }
         notifyListeners();
       },
       onError: (error) {
@@ -42,7 +49,6 @@ class TutorProvider with ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-
       String profileImageUrl = '';
       String qualificationImageUrl = '';
 
@@ -105,7 +111,77 @@ class TutorProvider with ChangeNotifier {
     }
   }
 
-  // Search tutors
+  // Apply advanced filters
+  void applyFilters(FilterModel filter) {
+    _activeFilter = filter;
+    _applyFilterToTutors(filter);
+    notifyListeners();
+  }
+
+  void _applyFilterToTutors(FilterModel filter) {
+    List<TutorModel> filtered = List.from(_tutors);
+
+    // Subject filter
+    if (filter.selectedSubjects.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedSubjects.any((subject) =>
+            tutor.professionalInfo.subjects.contains(subject));
+      }).toList();
+    }
+
+    // Location filter
+    if (filter.selectedLocations.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedLocations.any((location) =>
+            tutor.location.city.toLowerCase().contains(location.toLowerCase()) ||
+            tutor.location.area.toLowerCase().contains(location.toLowerCase()));
+      }).toList();
+    }
+
+    // Price range filter
+    if (!filter.priceRange.isDefault) {
+      filtered = filtered.where((tutor) {
+        return tutor.professionalInfo.monthlyRate >= filter.priceRange.min &&
+               tutor.professionalInfo.monthlyRate <= filter.priceRange.max;
+      }).toList();
+    }
+
+    // Experience filter
+    if (!filter.experienceRange.isDefault) {
+      filtered = filtered.where((tutor) {
+        return tutor.professionalInfo.experience >= filter.experienceRange.min &&
+               tutor.professionalInfo.experience <= filter.experienceRange.max;
+      }).toList();
+    }
+
+    // Rating filter
+    if (filter.minRating > 0) {
+      filtered = filtered.where((tutor) {
+        return tutor.ratings.averageRating >= filter.minRating;
+      }).toList();
+    }
+
+    // Standards filter
+    if (filter.selectedStandards.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedStandards.any((standard) =>
+            tutor.availability.standards.contains(standard));
+      }).toList();
+    }
+
+    // Qualification filter
+    if (filter.selectedQualifications.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedQualifications.any((qualification) =>
+            tutor.professionalInfo.qualification.toLowerCase()
+                .contains(qualification.toLowerCase()));
+      }).toList();
+    }
+
+    _filteredTutors = filtered;
+  }
+
+  // Search tutors (legacy method for text search)
   Future<void> searchTutors({
     String? query,
     List<String>? subjects,
@@ -131,18 +207,83 @@ class TutorProvider with ChangeNotifier {
     }
   }
 
-  // Filter tutors locally
+  // Filter tutors locally (legacy method for text search)
   void filterTutors(String query) {
     if (query.isEmpty) {
-      _filteredTutors = _tutors;
+      if (_activeFilter != null) {
+        _applyFilterToTutors(_activeFilter!);
+      } else {
+        _filteredTutors = _tutors;
+      }
     } else {
-      _filteredTutors = _tutors.where((tutor) {
+      List<TutorModel> baseList = _activeFilter != null 
+          ? _getFilteredTutors(_activeFilter!)
+          : _tutors;
+      
+      _filteredTutors = baseList.where((tutor) {
         return tutor.personalInfo.fullName.toLowerCase().contains(query.toLowerCase()) ||
                tutor.professionalInfo.subjects.any((subject) =>
                    subject.toLowerCase().contains(query.toLowerCase())) ||
-               tutor.location.city.toLowerCase().contains(query.toLowerCase());
+               tutor.location.city.toLowerCase().contains(query.toLowerCase()) ||
+               tutor.location.area.toLowerCase().contains(query.toLowerCase());
       }).toList();
     }
+    notifyListeners();
+  }
+
+  List<TutorModel> _getFilteredTutors(FilterModel filter) {
+    List<TutorModel> filtered = List.from(_tutors);
+    
+    // Apply the same filtering logic as _applyFilterToTutors
+    if (filter.selectedSubjects.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedSubjects.any((subject) =>
+            tutor.professionalInfo.subjects.contains(subject));
+      }).toList();
+    }
+
+    if (filter.selectedLocations.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedLocations.any((location) =>
+            tutor.location.city.toLowerCase().contains(location.toLowerCase()) ||
+            tutor.location.area.toLowerCase().contains(location.toLowerCase()));
+      }).toList();
+    }
+
+    if (!filter.priceRange.isDefault) {
+      filtered = filtered.where((tutor) {
+        return tutor.professionalInfo.monthlyRate >= filter.priceRange.min &&
+               tutor.professionalInfo.monthlyRate <= filter.priceRange.max;
+      }).toList();
+    }
+
+    if (!filter.experienceRange.isDefault) {
+      filtered = filtered.where((tutor) {
+        return tutor.professionalInfo.experience >= filter.experienceRange.min &&
+               tutor.professionalInfo.experience <= filter.experienceRange.max;
+      }).toList();
+    }
+
+    if (filter.minRating > 0) {
+      filtered = filtered.where((tutor) {
+        return tutor.ratings.averageRating >= filter.minRating;
+      }).toList();
+    }
+
+    if (filter.selectedStandards.isNotEmpty) {
+      filtered = filtered.where((tutor) {
+        return filter.selectedStandards.any((standard) =>
+            tutor.availability.standards.contains(standard));
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  // Clear filters
+  void clearFilters() {
+    _activeFilter = null;
+    _filteredTutors = _tutors;
     notifyListeners();
   }
 

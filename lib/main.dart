@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cloudinary_flutter/cloudinary_context.dart';
 import 'package:cloudinary_url_gen/cloudinary.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 // Your existing imports
@@ -18,7 +17,6 @@ import 'package:urban_tutor/screens/home_page.dart';
 
 // New imports for tutor functionality
 import 'package:urban_tutor/providers/tutor_provider.dart';
-import 'package:urban_tutor/utils/app_colors.dart';
 import 'package:urban_tutor/utils/theme_config.dart';
 import 'firebase_options.dart';
 
