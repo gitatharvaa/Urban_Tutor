@@ -48,7 +48,7 @@ class StandardsFilterSection extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'Std ${standard}',
+                        'Std $standard',
                         style: TextStyle(
                           color: isSelected ? Colors.white : AppColors.textPrimary,
                           fontSize: isTablet ? 14 : 12,

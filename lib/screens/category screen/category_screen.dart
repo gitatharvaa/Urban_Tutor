@@ -325,7 +325,7 @@ class _CategoryScreenState extends State<CategoryScreen>
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            FontAwesomeIcons.layerGroup,
+            FontAwesomeIcons.layerGroup as IconData?,
             color: Colors.white,
             size: isDesktop ? 24 : isTablet ? 22 : 20,
           ),
@@ -570,7 +570,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                               ),
                             ),
                             child: Icon(
-                              FontAwesomeIcons.bookOpen,
+                              FontAwesomeIcons.bookOpen as IconData?,
                               color: Colors.white,
                               size: isDesktop ? 32 : isTablet ? 28 : 24,
                             ),
@@ -672,7 +672,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          FontAwesomeIcons.trophy,
+                          FontAwesomeIcons.trophy as IconData?,
                           color: Colors.blue,
                           size: isDesktop ? 20 : isTablet ? 18 : 16,
                         ),
@@ -732,7 +732,7 @@ class _CategoryScreenState extends State<CategoryScreen>
                   );
                 },
               );
-            }).toList(),
+            }),
         ],
       ),
     );

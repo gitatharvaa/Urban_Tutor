@@ -127,7 +127,7 @@ class _MainHomePageState extends State<MainHomePage> {
                 },
                 backgroundColor: AppColors.primaryBlue,
                 child: Icon(
-                  FontAwesomeIcons.chalkboardUser,
+                  FontAwesomeIcons.chalkboardUser as IconData?,
                   semanticLabel: 'Add tutor profile',
                   size: fabIconSize,
                   color: Colors.white,

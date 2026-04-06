@@ -791,7 +791,7 @@ class _ProfileFormSectionsState extends State<ProfileFormSections>
               duration: const Duration(milliseconds: 300),
               child: FilterChip(
                 label: Text(
-                  '${standard}${_getOrdinalSuffix(standard)}',
+                  '$standard${_getOrdinalSuffix(standard)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: _getResponsiveFontSize(14),
