@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:urban_tutor/services/cloudinary_service.dart';
+import 'package:geocoding/geocoding.dart';
 import '../models/tutor_model.dart';
 import '../models/filter_model.dart';
 import '../services/tutor_service.dart';
@@ -22,6 +23,8 @@ class TutorProvider with ChangeNotifier {
   double get uploadProgress => _uploadProgress;
   FilterModel? get activeFilter => _activeFilter;
 
+  bool _hasGeocoded = false;
+
   // Load all tutors
   void loadTutors() {
     _tutorService.getAllTutors().listen(
@@ -33,11 +36,96 @@ class TutorProvider with ChangeNotifier {
           _filteredTutors = tutors;
         }
         notifyListeners();
+        // Geocode once after first load
+        if (!_hasGeocoded && tutors.isNotEmpty) {
+          _hasGeocoded = true;
+          geocodeTutors();
+        }
       },
       onError: (error) {
         _setError(error.toString());
       },
     );
+  }
+
+  /// Convert tutor area+city into lat/lng for map pins.
+  /// Only processes tutors that don't already have coordinates.
+  Future<void> geocodeTutors() async {
+    bool changed = false;
+    for (int i = 0; i < _tutors.length; i++) {
+      final tutor = _tutors[i];
+      if (tutor.location.latitude == null || tutor.location.longitude == null) {
+        final addressStr = '${tutor.location.area}, ${tutor.location.city}'.trim();
+        if (addressStr.isEmpty || addressStr == ',') continue;
+        try {
+          final locations = await locationFromAddress(addressStr);
+          if (locations.isNotEmpty) {
+            // Create a new LocationInfo with coordinates
+            _tutors[i] = TutorModel(
+              id: tutor.id,
+              personalInfo: tutor.personalInfo,
+              professionalInfo: tutor.professionalInfo,
+              availability: tutor.availability,
+              location: LocationInfo(
+                city: tutor.location.city,
+                area: tutor.location.area,
+                address: tutor.location.address,
+                latitude: locations.first.latitude,
+                longitude: locations.first.longitude,
+              ),
+              socialMedia: tutor.socialMedia,
+              ratings: tutor.ratings,
+              metadata: tutor.metadata,
+              bio: tutor.bio,
+            );
+            changed = true;
+          }
+        } catch (_) {
+          // Silently skip if geocoding fails
+        }
+      }
+    }
+    if (changed) {
+      if (_activeFilter != null) {
+        _applyFilterToTutors(_activeFilter!);
+      } else {
+        _filteredTutors = List.from(_tutors);
+      }
+      notifyListeners();
+    }
+  }
+
+  /// Validate and geocode a single address string.
+  /// Returns a (lat, lng) record or null if geocoding fails.
+  /// Used by the Add Tutor page for live location validation.
+  static Future<({double lat, double lng})?> geocodeAddress(String address) async {
+    if (address.trim().isEmpty) return null;
+    try {
+      final locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        return (lat: locations.first.latitude, lng: locations.first.longitude);
+      }
+    } catch (_) {
+      // geocoding failed
+    }
+    return null;
+  }
+
+  /// Reverse geocode coordinates into a human-readable address.
+  /// Returns (city, area) or null if reverse geocoding fails.
+  static Future<({String city, String area})?> reverseGeocodePosition(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final city = p.locality ?? p.administrativeArea ?? '';
+        final area = p.subLocality ?? p.thoroughfare ?? p.name ?? '';
+        return (city: city, area: area);
+      }
+    } catch (_) {
+      // reverse geocoding failed
+    }
+    return null;
   }
 
   // Add tutor profile with Cloudinary image upload
@@ -73,7 +161,23 @@ class TutorProvider with ChangeNotifier {
 
       _setUploadProgress(0.8);
 
-      // Create updated tutor model with image URLs
+      // Geocode the address
+      double? lat;
+      double? lng;
+      try {
+        final addressStr = '${tutor.location.area}, ${tutor.location.city}'.trim();
+        if (addressStr.isNotEmpty && addressStr != ',') {
+          final locations = await locationFromAddress(addressStr);
+          if (locations.isNotEmpty) {
+            lat = locations.first.latitude;
+            lng = locations.first.longitude;
+          }
+        }
+      } catch (_) {
+        // Silently skip if geocoding fails during profile creation
+      }
+
+      // Create updated tutor model with image URLs and coordinates
       final updatedTutor = TutorModel(
         personalInfo: PersonalInfo(
           fullName: tutor.personalInfo.fullName,
@@ -90,7 +194,13 @@ class TutorProvider with ChangeNotifier {
           monthlyRate: tutor.professionalInfo.monthlyRate,
         ),
         availability: tutor.availability,
-        location: tutor.location,
+        location: LocationInfo(
+          city: tutor.location.city,
+          area: tutor.location.area,
+          address: tutor.location.address,
+          latitude: lat,
+          longitude: lng,
+        ),
         socialMedia: tutor.socialMedia,
         ratings: tutor.ratings,
         metadata: tutor.metadata,

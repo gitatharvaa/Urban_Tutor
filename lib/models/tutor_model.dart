@@ -153,11 +153,15 @@ class LocationInfo {
   final String city;
   final String area;
   final String address;
+  final double? latitude;
+  final double? longitude;
 
   LocationInfo({
     required this.city,
     required this.area,
     required this.address,
+    this.latitude,
+    this.longitude,
   });
 
   factory LocationInfo.fromMap(Map<String, dynamic> map) {
@@ -165,6 +169,8 @@ class LocationInfo {
       city: map['city'] ?? '',
       area: map['area'] ?? '',
       address: map['address'] ?? '',
+      latitude: map['latitude']?.toDouble(),
+      longitude: map['longitude']?.toDouble(),
     );
   }
 
@@ -173,6 +179,8 @@ class LocationInfo {
       'city': city,
       'area': area,
       'address': address,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
     };
   }
 }

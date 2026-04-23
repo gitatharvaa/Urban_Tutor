@@ -125,6 +125,7 @@ class MyApp extends StatelessWidget {
 /* 
  * Always remember to change firebase directory through running flutterfire configure 
  * 
+ const String googleMapsApiKey = "AIzaSyA.....";
  * New additions for Cloudinary integration:
  * 1. dotenv for environment variables
  * 2. CloudinaryContext initialization
