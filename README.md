@@ -323,19 +323,8 @@ notes/
 
 ***
 
-## 👤 Author
-
-**Atharva**
-
-[
-[
-
-***
-
-<div align="center">
-
 ```
-Built with curiosity, caffeine, and Ganpati Bappa's blessings 🙏
+Built with curiosity & caffeine
 ```
 
 ⭐ Star this repo if it helped you learn something
