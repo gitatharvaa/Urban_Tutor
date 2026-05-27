@@ -1,10 +1,13 @@
 <div align="center">
 
 <h1>🎓 URBAN TUTOR</h1>
-<h3>On-Demand Home Tutoring Platform — Flutter × Firebase × Google Maps</h3>
+<h3>Connecting Parents & Students with Nearby Home Tutors</h3>
+<p><em>A location-aware tutor discovery and booking platform for urban and semi-urban India</em></p>
 
 <br/>
 
+[
+[
 [
 
 <br/>
@@ -17,160 +20,240 @@
 
 
 
+
 <br/>
 
-> **2 user roles · Real-time location tracking · Cloudinary media uploads · Firebase Auth + Firestore**
+> **2 user roles · 8 functional modules · Advanced multi-criteria filter engine · Real-time location-based discovery · Cloudinary media pipeline · JWT-secured REST API**
 
 </div>
 
 ***
 
-## 🎓 What Is This?
+## 📖 What Is Urban Tutor?
 
-A full-stack mobile application that connects students with local home tutors — built entirely with Flutter and Firebase.
+Urban Tutor is a **full-stack mobile application** that solves one of the most overlooked problems in Indian education — the chaotic, word-of-mouth-driven process of finding a home tutor.
 
-**Problem 1** — Finding a qualified local tutor is fragmented and offline. Parents have no reliable way to discover, verify, and book tutors near them.
+In densely populated cities like Mumbai, Vasai, and Virar, hundreds of tutors may be available within a 2 km radius of a student. Yet parents still rely on WhatsApp groups and neighbourhood gossip to find one. Tutors, on the other hand, lack any professional digital presence to reach the right students.
 
-**Problem 2** — Tutors have no professional platform to showcase their qualifications, manage sessions, and reach students in their area.
-
-**Solution** — A dual-role mobile app where students can discover nearby tutors on an interactive map, view profiles with uploaded credentials, and request sessions — while tutors can manage their availability, upload notes/media via Cloudinary, and handle bookings in real time.
+**Urban Tutor bridges this gap** — a dedicated, education-focused marketplace that brings structure, transparency, and efficiency to the ₹6.4 lakh crore private tutoring ecosystem in India.
 
 ***
 
-## 📱 App Screenshots
+## ❗ Problem Statement
+
+> *How can students and parents efficiently discover, evaluate, and connect with suitable tutors in densely populated urban environments using a structured, scalable, and user-friendly digital platform that enables multi-criteria filtering, ensures reliable information, and reduces the time and effort involved in the tutor selection process?*
+
+### Why This Problem Matters
+
+| Pain Point | Impact |
+|---|---|
+| Tutors found via word-of-mouth only | No standardization, no way to compare |
+| No subject/fee/experience filters on generic platforms | Wastes hours of parent time |
+| Skilled tutors lack professional digital presence | Low reach, relies on personal networks |
+| Existing platforms (OLX, Sulekha) are not education-specific | No domain filters like academic level or teaching style |
+| Over 60% of Indian students rely on private tutoring (UNESCO, 2021) | Massive unmet need for structured discovery |
+
+***
+
+## 🎯 Project Objectives
+
+1. **Structured Tutor Discovery** — Centralized platform with rich, comparable tutor profiles (subjects, fees, experience, qualifications, locality)
+2. **Advanced Multi-Criteria Filtering** — Dynamic filter engine combining quick chips + granular advanced filters across 8+ parameters
+3. **Scalable Full-Stack Architecture** — Flutter frontend + Node.js/Express backend + MongoDB data layer with clean separation of concerns
+4. **Efficient Student–Tutor Interaction** — Profile viewing, shortlisting, bookmarking, and one-click enquiry submission
+5. **Location-Based Matching** — Proximity-aware tutor discovery using GPS and locality-based filtering
+6. **Tutor Visibility & Accessibility** — Professional space for tutors to showcase qualifications, availability, and teaching style
+7. **High Usability & Performance** — Mobile-first Material Design UI with real-time filter updates, sub-second response
+8. **Data Security & Reliability** — JWT authentication, bcrypt password hashing, HTTPS-only API communication
+
+***
+
+## 🖥️ App Screenshots
 
 <div align="center">
 
-| Home Screen | Tutor Map View |
+| Home Screen | Classroom / Tutor Listing |
 |:---:|:---:|
 |  |  |
 
-| Tutor Profile | Student Dashboard |
+| Advanced Filter Screen | Classroom Dashboard |
+|:---:|:---:|
+|  |  |
+
+| Tutor Profile Detail | Add Note Feature |
 |:---:|:---:|
 |  |  |
 
 </div>
+
+> 📌 Replace the above paths with your actual screenshot URLs from the repo.
 
 ***
 
 ## 🏗️ System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     USER LAYER                              │
-│         Student App  ·  Tutor App  (same Flutter codebase) │
-│              Role-based UI via Firebase Auth                │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ Flutter (Dart)
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   FLUTTER APP LAYER                         │
-│                                                             │
-│  State Management: Provider                                 │
-│  Navigation: Named Routes                                   │
-│  Local Storage: flutter_dotenv (.env)                       │
-│  Location: Geolocator + Geocoding                           │
-│  Maps: google_maps_flutter (Maps SDK for Android)           │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   BACKEND SERVICES                          │
-│                                                             │
-│  Firebase Auth       → Email/password authentication        │
-│  Cloud Firestore     → User profiles, sessions, notes       │
-│  Firebase Storage    → Profile photos                       │
-│  Cloudinary          → Notes, documents, media uploads      │
-│  Google Maps SDK     → Interactive tutor location map       │
-│  Geolocator          → Real-time GPS coordinates            │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  PLATFORM                                   │
-│  Android (compileSdk 36 · targetSdk 36 · Kotlin 2.3.0)     │
-│  Gradle 8.11.1 · Java 17 · Impeller Rendering (Vulkan)     │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                        USER LAYER                                │
+│    Student / Parent App          Tutor App                       │
+│         (same Flutter codebase — role-based UI)                  │
+└────────────────────────┬─────────────────────────────────────────┘
+                         │ Flutter (Dart) — Material Design
+                         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                   PRESENTATION LAYER (Flutter)                   │
+│                                                                  │
+│  State Management: Provider (ChangeNotifier)                     │
+│  Navigation: Named Routes                                        │
+│  UI: Material Design · Responsive across mobile + web           │
+│  Location: Geolocator + Geocoding (GPS coordinates)             │
+│  Maps: google_maps_flutter (Maps SDK for Android)               │
+│  Media: Cloudinary Flutter SDK                                   │
+│  Config: flutter_dotenv (.env for API keys)                      │
+└────────────────────────┬─────────────────────────────────────────┘
+                         │ HTTPS · JWT Bearer Token
+                         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                 APPLICATION LAYER (Node.js + Express)            │
+│                                                                  │
+│  Auth Module         → JWT token issuance + validation           │
+│  Tutor Module        → Profile CRUD, availability management     │
+│  Search & Filter     → Multi-criteria query processing           │
+│  Enquiry Module      → Student-to-tutor enquiry handling         │
+│  Media Module        → Cloudinary upload integration             │
+│  Admin Module        → Platform management (future)             │
+└────────────────────────┬─────────────────────────────────────────┘
+                         │ Mongoose ODM
+                         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    DATA LAYER (MongoDB + Cloudinary)             │
+│                                                                  │
+│  Collections:                                                    │
+│    users      → name, email, role, auth credentials             │
+│    tutors     → subjects, experience, fees, location, mode       │
+│    enquiries  → studentId, tutorId, message, timestamp           │
+│    notes      → tutorId, title, cloudinaryUrl, sharedWith        │
+│                                                                  │
+│  Media Storage: Cloudinary (profile photos, notes, documents)   │
+│  Auth: Firebase Auth (Email/Password)                            │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ***
 
-## ✨ Key Features
+## ⚙️ How the Filter Engine Works
 
-### 👨‍🎓 Student Side
-- **Tutor Discovery Map** — Browse nearby tutors on a Google Maps view with real-time location markers
-- **Tutor Profiles** — View qualifications, subjects, ratings, and uploaded credentials
-- **Session Requests** — Send, track, and manage tutoring session bookings
-- **Notes Access** — Download/view notes and study material shared by tutors via Cloudinary
+The **Filter and Search Engine** is the core differentiator of Urban Tutor. It operates entirely client-side using Provider-managed state, enabling **real-time zero-latency updates** without repeated API calls.
+
+```
+User Input
+    │
+    ├── Quick Filter Chips (toggleable)
+    │     "All Tutors"  "📍 Nearby"  "₹ Affordable"
+    │     "⭐ Experienced"  "🏆 Top Rated"  "💻 Online"
+    │
+    └── Advanced Filter Panel (granular)
+          ├── Subjects (Mathematics, Science, English, Hindi, Physics...)
+          ├── Academic Level (Class 1–12, Competitive Exams)
+          ├── Fee Range (slider: ₹0 – ₹5000/month)
+          ├── Experience (0–2 yrs / 2–5 yrs / 5+ yrs)
+          ├── Rating (3★ / 4★ / 4.5★ and above)
+          ├── Teaching Mode (Online / Offline / Both)
+          ├── Availability (Days + Time Slots)
+          └── Preferred Location (City chips: Mumbai, Vasai, Virar...)
+                         │
+                         ▼
+              Provider notifies listeners
+                         │
+                         ▼
+          Tutor list updates INSTANTLY
+    (hundreds of profiles → curated 5–10 in < 1 minute)
+```
+
+**Synchronization:** Quick chips are linked to the advanced panel — selecting "Affordable" automatically adjusts the fee range slider, ensuring filter consistency.
+
+***
+
+## ✨ Features
+
+### 👨‍🎓 Student / Parent Side
+- **Home Screen** — Search bar + quick filter chips + live tutor card list
+- **Advanced Filter Panel** — 8+ filter dimensions with `Clear All` / `Apply Filters`
+- **Tutor Profile Detail** — Full info: subjects, standards, experience, fee, contact, location, about
+- **Shortlist & Bookmark** — Save tutors for later reference
+- **Send Enquiry** — One-click enquiry with message directly from tutor profile
+- **Notes Access** — View and download study materials shared by tutors via Cloudinary
+- **Classroom Dashboard** — Upcoming classwork, assignments, quizzes, recent activity, XP/level system
 
 ### 👨‍🏫 Tutor Side
-- **Profile Management** — Upload profile photo, qualifications, subjects taught, and availability
-- **Notes Upload** — Share notes and documents with students using Cloudinary media pipeline
-- **Session Management** — Accept or decline student session requests
-- **Location Visibility** — Appear on the student map based on GPS coordinates
+- **Profile Management** — Create/update subjects, academic standards, fee, experience, teaching mode, locality
+- **Media Upload** — Upload profile photo and credential documents via Cloudinary pipeline
+- **Add Notes** — Share notes with title, description, grade, subject, difficulty, visibility (Public/Private), and optional file upload (PDF/DOC/JPG, max 50MB)
+- **Enquiry Management** — View and respond to student enquiries
+- **Active/Inactive Toggle** — Mark profile visible or hidden without deleting account
 
-### 🔐 Auth & Core
-- Firebase Email/Password authentication with role selection at signup
-- Role-based routing — Students and Tutors see entirely different home screens
-- `.env`-based API key management (Cloudinary, Google Maps) via `flutter_dotenv`
-- Foreground geolocator service with persistent location binding
+### 🔐 Auth & Security
+- **Firebase Email/Password Authentication** — Role selection (Student / Tutor) at signup
+- **JWT-secured REST API** — All protected endpoints require Bearer token
+- **bcrypt password hashing** — Passwords never stored in plain text
+- **Environment-based secret management** — All API keys in `.env` / `local.properties` (never in version control)
 
 ***
 
 ## 🛠️ Tech Stack
 
 ```
-┌─────────────────────┬──────────────────────────────────────────┐
-│ Layer               │ Technologies                             │
-├─────────────────────┼──────────────────────────────────────────┤
-│ Mobile Framework    │ Flutter 3.x · Dart                       │
-│ State Management    │ Provider                                  │
-│ Authentication      │ Firebase Auth (Email/Password)           │
-│ Database            │ Cloud Firestore                          │
-│ File Storage        │ Firebase Storage · Cloudinary            │
-│ Maps & Location     │ google_maps_flutter · Geolocator         │
-│ Geocoding           │ geocoding (reverse + forward)            │
-│ Media Upload        │ Cloudinary Flutter SDK                   │
-│ Environment Config  │ flutter_dotenv                           │
-│ Build System        │ Gradle 8.11.1 · Kotlin 2.3.0            │
-│ Java Compatibility  │ Java 17 (sourceCompatibility)           │
-│ Android SDK         │ compileSdk 36 · targetSdk 36            │
-│ Rendering           │ Impeller (Vulkan)                        │
-└─────────────────────┴──────────────────────────────────────────┘
+┌──────────────────────┬────────────────────────────────────────────┐
+│ Layer                │ Technologies                               │
+├──────────────────────┼────────────────────────────────────────────┤
+│ Mobile Framework     │ Flutter 3.x · Dart                         │
+│ State Management     │ Provider (ChangeNotifier)                  │
+│ Authentication       │ Firebase Auth · JWT (backend sessions)     │
+│ Backend API          │ Node.js (LTS) · Express.js                 │
+│ Database             │ MongoDB Atlas · Mongoose ODM               │
+│ Media Storage        │ Cloudinary SDK (images, PDFs, documents)   │
+│ Maps & Location      │ google_maps_flutter · Geolocator           │
+│ Geocoding            │ geocoding package (reverse + forward)      │
+│ HTTP Client          │ http / dio                                 │
+│ UI Components        │ flutter_rating_bar · google_fonts          │
+│ Environment Config   │ flutter_dotenv                             │
+│ Local Storage        │ shared_preferences (saved filters)         │
+│ Build System         │ Gradle 8.11.1 · Kotlin 2.3.0              │
+│ Java Compatibility   │ Java 17 (sourceCompatibility)             │
+│ Android SDK          │ compileSdk 36 · targetSdk 36              │
+│ Rendering Engine     │ Impeller (Vulkan)                          │
+│ Dev Tools            │ Android Studio · VS Code · Postman         │
+│ Version Control      │ Git · GitHub                               │
+└──────────────────────┴────────────────────────────────────────────┘
 ```
 
 ***
 
-## 🔑 Key Technical Decisions
+## 🗂️ Major Modules
 
-**Why Provider over Riverpod/Bloc?**
-Urban Tutor has a straightforward unidirectional data flow — user auth state → role routing → screen-level data. Provider's `ChangeNotifier` pattern is sufficient and avoids unnecessary boilerplate for a project of this scope.
-
-**Why Cloudinary alongside Firebase Storage?**
-Firebase Storage handles profile photos (small, user-scoped files). Cloudinary handles notes and documents — its free tier provides transformations, CDN delivery, and format conversion that Firebase Storage doesn't offer natively, making it better suited for educational content distribution.
-
-**Why `local.properties` for the Maps API key?**
-Hardcoding the Google Maps API key in `AndroidManifest.xml` would expose it in version control. The `local.properties` → `manifestPlaceholders["mapsApiKey"]` → `${mapsApiKey}` pattern keeps secrets out of Git entirely, with Gradle injecting the value at build time.
-
-**Why `com.google.android.geo.API_KEY` and not `maps.v2.API_KEY`?**
-The `v2.API_KEY` meta-data name is deprecated. The current `google_maps_flutter` plugin (backed by Maps SDK for Android v6+) requires `geo.API_KEY` as the meta-data name — using the old name causes a `java.lang.IllegalStateException: API key not found` crash at runtime.
-
-**Why Kotlin 2.3.0?**
-The `google_maps_flutter_android` plugin now ships its internal Kotlin stdlib compiled at metadata version `2.3.0`. Using an older Kotlin Gradle plugin (e.g., `2.1.0`) causes an `Internal compiler error` during `compileDebugKotlin` because of metadata version mismatch. Aligning the project to `2.3.0` resolves this.
-
-**Why `compileSdk 36` and `targetSdk 36`?**
-Android 16 (API 36) is the latest stable SDK. Targeting it ensures the app receives modern permission behavior, edge-to-edge display support, and access to the latest Play Store requirements while staying compatible with devices running Android 7.0+ (minSdk from Flutter defaults).
+| Module | Responsibility |
+|---|---|
+| **Authentication** | Registration, login, JWT session handling, role-based routing |
+| **Tutor Management** | Profile CRUD, active/inactive toggle, Cloudinary media upload |
+| **Search & Filter Engine** | Real-time multi-criteria filtering, quick chips + advanced panel |
+| **Student Interaction** | Tutor browsing, shortlisting, enquiry submission |
+| **Notes & Classroom** | Tutor note creation, Cloudinary upload, student-facing classroom dashboard |
+| **Location Module** | Geolocator GPS, Google Maps view, locality-based proximity filtering |
+| **Media Pipeline** | Cloudinary integration for profile photos, documents (PDF/DOC/JPG, max 50MB) |
+| **Administration** *(future)* | Platform moderation, tutor verification, analytics |
 
 ***
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Flutter SDK (3.x)
-- Android Studio / VS Code with Flutter extension
-- Firebase project with Auth + Firestore + Storage enabled
-- Google Cloud project with **Maps SDK for Android** and **Geocoding API** enabled
-- Cloudinary account
+- Flutter SDK 3.x (stable channel)
+- Node.js LTS + npm
+- Android Studio / VS Code with Flutter & Dart plugins
+- Firebase project (Auth + Firestore + Storage enabled)
+- Google Cloud project (**Maps SDK for Android** + **Geocoding API** enabled)
+- MongoDB Atlas cluster
+- Cloudinary account (free tier works)
 
 ### Setup
 
@@ -182,37 +265,47 @@ cd urban_tutor
 # 2. Install Flutter dependencies
 flutter pub get
 
-# 3. Configure environment variables
-# Create a .env file in the project root:
+# 3. Create .env in project root (gitignored)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
-# 4. Add Google Maps API key to android/local.properties
-# (already gitignored — create manually)
-sdk.dir=C:\\Users\\YourUser\\AppData\\Local\\Android\\Sdk
-flutter.sdk=C:\\src\\flutter
+# 4. Create android/local.properties (gitignored)
+sdk.dir=C:\Users\YourUser\AppData\Local\Android\Sdk
+flutter.sdk=C:\src\flutter
+flutter.versionName=1.0.0
+flutter.versionCode=1
 MAPS_API_KEY=your_google_maps_api_key_here
 
 # 5. Add Firebase config
 # Download google-services.json from Firebase Console
-# Place it at: android/app/google-services.json
+# Place at: android/app/google-services.json
 
-# 6. Run the app
+# 6. Set up backend
+cd backend
+npm install
+cp .env.example .env   # fill in MONGO_URI, JWT_SECRET, CLOUDINARY keys
+npm start              # runs on http://localhost:5000
+
+# 7. Run the Flutter app (new terminal)
+cd ..
 flutter run
 ```
 
-### Verify AndroidManifest.xml has these entries
+### ⚠️ AndroidManifest.xml — Required Entry
+
 ```xml
-<!-- Inside <application> tag -->
+<!-- Inside <application> tag in android/app/src/main/AndroidManifest.xml -->
 <meta-data
     android:name="com.google.android.geo.API_KEY"
     android:value="${mapsApiKey}" />
 ```
 
-And `android/app/build.gradle` has:
+### ⚠️ android/app/build.gradle — Required Entry
+
 ```gradle
 defaultConfig {
     manifestPlaceholders["mapsApiKey"] = localProperties.getProperty("MAPS_API_KEY", "")
+    // ... rest of config
 }
 ```
 
@@ -224,107 +317,168 @@ defaultConfig {
 urban_tutor/
 │
 ├── lib/
-│   ├── main.dart                   # App entry point, Firebase init, dotenv load
-│   ├── firebase_options.dart       # FlutterFire generated config
+│   ├── main.dart                     # Entry point: Firebase init, dotenv load, app boot
+│   ├── firebase_options.dart         # FlutterFire generated config
 │   │
-│   ├── models/                     # Data models (User, Tutor, Session, Note)
+│   ├── models/                       # Data models
+│   │   ├── tutor_model.dart          # Tutor profile: subjects, fees, location, mode
+│   │   ├── user_model.dart           # User: name, email, role
+│   │   ├── enquiry_model.dart        # Student enquiry
+│   │   └── note_model.dart           # Tutor note + Cloudinary URL
 │   │
-│   ├── providers/                  # Provider state management
-│   │   ├── auth_provider.dart      # Firebase Auth state
-│   │   ├── tutor_provider.dart     # Tutor data + location
-│   │   └── notes_provider.dart     # Notes CRUD + Cloudinary upload
+│   ├── providers/                    # Provider state management
+│   │   ├── auth_provider.dart        # Firebase Auth state + role
+│   │   ├── tutor_provider.dart       # Tutor list + location + filter state
+│   │   └── notes_provider.dart       # Notes CRUD + Cloudinary upload pipeline
 │   │
 │   ├── pages/
-│   │   ├── auth/                   # Login, Signup, Role selection
-│   │   ├── student/                # Student home, map, tutor profile, sessions
-│   │   ├── tutor/                  # Tutor home, profile edit, notes, sessions
-│   │   └── shared/                 # Common screens (splash, settings)
+│   │   ├── auth/
+│   │   │   ├── login_page.dart
+│   │   │   ├── register_page.dart
+│   │   │   └── role_selection_page.dart
+│   │   ├── student/
+│   │   │   ├── home_page.dart        # Search bar + quick filters + tutor cards
+│   │   │   ├── filter_page.dart      # Advanced filter panel (8+ dimensions)
+│   │   │   ├── tutor_detail_page.dart # Full tutor profile + enquiry action
+│   │   │   ├── map_page.dart         # Google Maps with tutor location markers
+│   │   │   └── classroom_page.dart   # Assignments, quizzes, notes, XP system
+│   │   └── tutor/
+│   │       ├── tutor_home_page.dart
+│   │       ├── profile_edit_page.dart
+│   │       ├── add_note_page.dart    # Note creation + Cloudinary upload
+│   │       └── enquiry_list_page.dart
 │   │
-│   ├── widgets/                    # Reusable UI components
-│   └── services/                   # Firestore, Cloudinary, Location services
+│   ├── widgets/                      # Reusable UI components
+│   │   ├── tutor_card.dart
+│   │   ├── filter_chip_bar.dart
+│   │   └── rating_widget.dart
+│   │
+│   └── services/                     # Business logic + API calls
+│       ├── auth_service.dart
+│       ├── tutor_service.dart
+│       ├── cloudinary_service.dart
+│       └── location_service.dart
+│
+├── backend/
+│   ├── server.js                     # Express app entry point
+│   ├── routes/
+│   │   ├── auth.js                   # POST /register, POST /login
+│   │   ├── tutors.js                 # GET /tutors, POST/PUT/DELETE /tutor
+│   │   ├── enquiries.js              # POST /enquiry, GET /enquiries/:tutorId
+│   │   └── notes.js                  # POST /note, GET /notes/:tutorId
+│   ├── models/                       # Mongoose schemas
+│   │   ├── User.js
+│   │   ├── Tutor.js
+│   │   ├── Enquiry.js
+│   │   └── Note.js
+│   ├── middleware/
+│   │   └── auth.js                   # JWT verification middleware
+│   └── .env.example                  # Template for env vars
 │
 ├── android/
 │   ├── app/
-│   │   ├── src/main/
-│   │   │   └── AndroidManifest.xml # Permissions + Maps API key meta-data
-│   │   ├── build.gradle            # Kotlin 2.3.0 · compileSdk 36 · Java 17
-│   │   └── google-services.json    # Firebase config (gitignored)
-│   ├── build.gradle                # Project-level Gradle config
-│   ├── settings.gradle             # Kotlin plugin version declaration
-│   └── local.properties            # SDK paths + MAPS_API_KEY (gitignored)
+│   │   ├── src/main/AndroidManifest.xml  # Permissions + Maps API key meta-data
+│   │   ├── build.gradle                  # Kotlin 2.3.0 · compileSdk 36 · Java 17
+│   │   └── google-services.json          # Firebase config (gitignored)
+│   ├── build.gradle                      # Project-level Gradle config
+│   ├── settings.gradle                   # Kotlin plugin + Flutter loader
+│   └── local.properties                  # SDK paths + MAPS_API_KEY (gitignored)
 │
 ├── assets/
-│   └── screenshots/                # App screenshots for README
+│   └── screenshots/
 │
-├── .env                            # Cloudinary keys (gitignored)
+├── .env                              # Cloudinary keys (gitignored)
 ├── .gitignore
-├── pubspec.yaml                    # Flutter dependencies
+├── pubspec.yaml
 └── README.md
 ```
 
 ***
 
-## 🔐 Permissions (AndroidManifest.xml)
+## 🔐 Android Permissions
 
 | Permission | Purpose |
 |---|---|
-| `INTERNET` | Firebase, Cloudinary, Google Maps API calls |
-| `CAMERA` | Profile photo capture for tutors/students |
+| `INTERNET` | Firebase, Cloudinary, Node.js API, Google Maps |
+| `ACCESS_FINE_LOCATION` | GPS for real-time tutor proximity on map |
+| `ACCESS_COARSE_LOCATION` | Fallback location for map initialisation |
+| `CAMERA` | Profile photo capture |
 | `READ_EXTERNAL_STORAGE` | Document/notes upload from device |
-| `ACCESS_FINE_LOCATION` | GPS coordinates for tutor map placement |
-| `ACCESS_COARSE_LOCATION` | Fallback location for map view |
-| `QUERY_ALL_PACKAGES` | Flutter engine process text plugin requirement |
+| `QUERY_ALL_PACKAGES` | Flutter engine ProcessText plugin requirement |
 
 ***
 
-## 🌐 Firebase Structure (Firestore)
+## 📊 Performance Evaluation
 
-```
-users/
-  {uid}/
-    role: "student" | "tutor"
-    name: string
-    email: string
-    photoUrl: string
-    location: GeoPoint          ← tutors only
-    subjects: string[]          ← tutors only
-    availability: string        ← tutors only
+Testing was conducted with a synthetic dataset of diverse tutor profiles across subjects, experience bands, fee ranges, and urban/semi-urban locations.
 
-sessions/
-  {sessionId}/
-    studentId: string
-    tutorId: string
-    status: "pending" | "accepted" | "completed"
-    subject: string
-    scheduledAt: Timestamp
-
-notes/
-  {noteId}/
-    tutorId: string
-    title: string
-    cloudinaryUrl: string
-    uploadedAt: Timestamp
-    sharedWith: string[]        ← student UIDs
-```
+| Parameter | Observation |
+|---|---|
+| **Filter response time** | Near-instantaneous — client-side Provider state, no API call on filter change |
+| **Tutor list load time** | Fast initial fetch on 4G connections |
+| **Discovery efficiency** | Users reduced full tutor list to 5–10 relevant candidates in under 1 minute |
+| **Memory stability** | Stable memory during navigation between Home → Filter → Profile → Back |
+| **Media loading** | Smooth Cloudinary CDN delivery even on scrolling lists |
+| **Filter accuracy** | Intersection of all selected criteria correctly applied across all test combinations |
+| **Edge case handling** | Empty result states handled gracefully without crashes |
+| **Usability feedback** | Interface rated intuitive by peer test group; filter panel clarity highlighted positively |
 
 ***
 
-## 🔮 Future Development
+## ⚠️ Current Limitations
 
-- **Phase 2 — In-App Chat:** Real-time messaging between students and tutors using Firebase Realtime Database, with file sharing support.
-
-- **Phase 3 — Ratings & Reviews:** Post-session rating system where students rate tutors, with aggregated scores displayed on tutor profile cards.
-
-- **Phase 4 — Payment Integration:** Razorpay/Stripe integration for direct in-app session payments with invoice generation.
-
-- **Phase 5 — iOS Support:** Extend to iOS with `AppDelegate.swift`-based Maps key injection and iOS-specific permission handling.
-
-- **Phase 6 — Admin Panel:** Web-based admin dashboard (React + Firebase) for platform moderation, tutor verification, and analytics.
+1. **No real-time availability sync** — Tutor schedule data is static; no live calendar sync
+2. **No in-app payment gateway** — Fee transactions handled externally (planned for v2)
+3. **No real-time chat** — Communication via enquiry only; no instant messaging
+4. **Rule-based filtering only** — No ML/AI recommendation engine (planned for v3)
+5. **No automated tutor verification** — Profile authenticity relies on self-reported data
+6. **Platform: Android only** — iOS and web require additional configuration
 
 ***
 
+## 🔮 Future Roadmap
+
+- **Phase 2 — In-App Chat:** Real-time messaging using Firebase Realtime Database with file attachment support
+- **Phase 3 — Ratings & Reviews:** Post-session rating system with aggregated scores on tutor cards
+- **Phase 4 — Payment Integration:** Razorpay/Stripe for in-app session booking and fee payment
+- **Phase 5 — AI Recommendations:** ML-based tutor matching using student history, subject performance, and behavioral signals
+- **Phase 6 — Tutor Analytics Dashboard:** Enquiry rate tracking, student engagement metrics, profile views
+- **Phase 7 — Calendar & Scheduling:** Session booking with calendar sync, automated reminders via FCM
+- **Phase 8 — iOS Support:** AppDelegate-based Maps key injection, iOS permission flows
+
+***
+
+## 👥 Team
+
+**Major Project — Sem VIII, B.E. Computer Engineering**
+**Vidyavardhini's College of Engineering & Technology, Vasai (W)**
+*(NAAC and NBA Accredited · Affiliated with University of Mumbai · 2025–2026)*
+
+| Name | Roll No. |
+|---|---|
+| Gargi Betawadkar | 12 |
+| Atharva Chavan | 27 |
+| Arya Raul | 16 |
+
+**Guide:** Prof. Mrs. Smita Jawale
+**HOD:** Dr. Megha Trivedi
+**Principal:** Dr. Rakesh Himte
+
+***
+
+## 👤 Author
+
+**Atharva Chavan**
+
+[
+[
+
+***
+
+<div align="center">
+
 ```
-Built with curiosity & caffeine
+Built with curiosity, caffeine, and Ganpati Bappa's blessings 🙏
 ```
 
 ⭐ Star this repo if it helped you learn something
